@@ -1,0 +1,10 @@
+## Title: Bagnon Currencies
+## Notes: Makes currencies that is checked in the currency-tab visible in the Bagnon-panels.
+## Author: Spillmaker
+## Interface: 70300
+## Version: 1.0.0
+## OptionalDeps: Bagnon
+## BuildName: Bagnon_Currencies
+
+LibDataBroker-1.1.lua
+Bagnon_Currencies.lua
