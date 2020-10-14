@@ -1,66 +1,75 @@
 -- Bagnon Currencies 1.0
 
+local strjoin = _G.strjoin;
+local tinsert = _G.tinsert;
+local unpack = _G.unpack;
+
+local ToggleCharacter = _G.ToggleCharacter;
+local GetNumWatchedTokens = _G.GetNumWatchedTokens;
+local GetBackpackCurrencyInfo = _G.C_CurrencyInfo.GetBackpackCurrencyInfo;
+local GetCurrencyInfo = _G.C_CurrencyInfo.GetCurrencyInfo;
+
+local GameTooltip = _G.GameTooltip;
 
 -- Include Databroker-library
-local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
+local ldb = _G.LibStub:GetLibrary("LibDataBroker-1.1")
 -- Create dataobject
 local dataobj = ldb:NewDataObject("Bagnon-Currencies", {type = "data source", text = "Loading currencies...", OnClick = function() ToggleCharacter("TokenFrame") end})
 -- Create frame
-local frame = CreateFrame("frame")
+local frame = _G.CreateFrame("frame")
 
 -- Text-colors
-local textWhite = "|cffffffff"
 
-local function getWatchedTokensAmount()
-	local amount = 0;
-			for i = 1, MAX_WATCHED_TOKENS do
-				if(GetBackpackCurrencyInfo(i)) then
-					amount = amount+1
-				end
-			end
-	return amount
+local function createIconString (iconPath)
+	return strjoin("", "|T", iconPath, ":15:15:0:0|t");
 end
 
+local function whitenText (text)
+	return strjoin("", "|cffffffff", text, "|r");
+end
 
-frame:SetScript("OnUpdate", function(self, elap)
-	-- Ghetto stringbuilder
-	local text = "";
+frame:RegisterEvent('CURRENCY_DISPLAY_UPDATE');
 
-	-- Iterate trough each currency-type that have been marked for view.
-	for i = 1, getWatchedTokensAmount() do
-		local name, count, icon = GetBackpackCurrencyInfo(i);
-		text = text.. count.."|T"..icon..":15:15:0:0|t "
+frame:SetScript("OnEvent", function ()
+	local text = {};
+
+	for i = 1, GetNumWatchedTokens(), 1 do
+		local info = GetBackpackCurrencyInfo(i);
+
+		tinsert(text, strjoin("", info.quantity, createIconString(info.iconFileID)));
 	end
-	-- Output
-	dataobj.text = text
 
+	dataobj.text = strjoin(" ",  unpack(text));
 end)
 
 -- Tooltip-settings
 function dataobj:OnEnter()
-	GameTooltip:SetOwner(self, "ANCHOR_NONE")
-	GameTooltip:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT")
-	GameTooltip:ClearLines()
-	GameTooltip:AddLine(textWhite .. "Currencies|r")
+	GameTooltip:SetOwner(self, "ANCHOR_NONE");
+	GameTooltip:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT");
+	GameTooltip:ClearLines();
+	GameTooltip:AddLine(whitenText("Currencies"));
 
-	for i = 1, getWatchedTokensAmount() do
+	for i = 1, GetNumWatchedTokens() do
+		local backpackInfo = GetBackpackCurrencyInfo(i);
+		local info = GetCurrencyInfo(backpackInfo.currencyTypesID);
+		local icon = createIconString(info.iconFileID);
+		local totalMax = info.maxQuantity;
+		local weeklyMax = info.maxWeeklyQuantity;
+		local amount = info.quantity;
+		local earnedThisWeek = info.quantityEarnedThisWeek;
 
-		local name, count, icon, itemID  = GetBackpackCurrencyInfo(i);
-		local name, amount, texturePath, earnedThisWeek, weeklyMax, totalMax, isDiscovered = GetCurrencyInfo(itemID);
-
-
-		GameTooltip:AddLine(textWhite .. "|T"..icon..":15:15:0:0|t ".. name)
+		GameTooltip:AddLine(whitenText(strjoin(" ", icon, info.name)));
 
 		if totalMax <= 0 then
-			GameTooltip:AddDoubleLine("Total: ", textWhite .. amount .. " |T"..icon..":15:15:0:0|t ")
+			GameTooltip:AddDoubleLine(whitenText(strjoin(" ", icon, info.name)), whitenText(strjoin(" ", amount, icon)));
 		else
-			GameTooltip:AddDoubleLine("Total Maximum: ", textWhite .. amount .. "/" .. string.format("%02d",totalMax) .." |T"..icon..":15:15:0:0|t ")
+			GameTooltip:AddDoubleLine(whitenText(strjoin(" ", icon, info.name)), whitenText(strjoin("", amount, "/", totalMax, " ", icon)))
 		end
 
 		if weeklyMax > 0 then
-			GameTooltip:AddDoubleLine("Total Weekly Maximum: ", textWhite .. earnedThisWeek .. "/".. string.format("%02d",weeklyMax) .." |T"..icon..":15:15:0:0|t ")
+			GameTooltip:AddDoubleLine("Weekly Maximum:", whitenText(strjoin("", earnedThisWeek, "/", weeklyMax, " ", icon)))
 		end
-
 	end
+
 	GameTooltip:Show()
 end
