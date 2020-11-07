@@ -3,6 +3,7 @@
 local strjoin = _G.strjoin;
 local tinsert = _G.tinsert;
 local unpack = _G.unpack;
+local C_Timer = _G.C_Timer;
 
 local ToggleCharacter = _G.ToggleCharacter;
 local GetNumWatchedTokens = _G.GetNumWatchedTokens;
@@ -36,7 +37,9 @@ local function updateDataObject ()
 	for i = 1, GetNumWatchedTokens(), 1 do
 		local info = GetBackpackCurrencyInfo(i);
 
-		tinsert(text, strjoin("", info.quantity, createIconString(info.iconFileID)));
+		if info then
+			tinsert(text, strjoin("", info.quantity, createIconString(info.iconFileID)));
+		end
 	end
 
 	dataObject.text = strjoin(" ",  unpack(text));
@@ -89,6 +92,11 @@ local function updateTooltip ()
 	setTooltipText();
 end
 
+local function updateDataAndTooltip ()
+	updateDataObject();
+	updateTooltip();
+end
+
 function dataObject:OnEnter ()
 	--[[ self is not dataObject here! ]]
 	parentFrame = self;
@@ -96,18 +104,14 @@ function dataObject:OnEnter ()
 	setTooltipText();
 end
 
-function events:CURRENCY_DISPLAY_UPDATE (...)
-	updateDataObject();
-	updateTooltip();
-end
+events.CURRENCY_DISPLAY_UPDATE = updateDataAndTooltip;
 
--- Will update the dataobject whenever mouse is clicked while the currency-window is open.
-function events:GLOBAL_MOUSE_UP (...)
-	if TokenFrame:IsVisible() then
-		updateDataObject();
-		updateTooltip();
-	end
-end
+_G.hooksecurefunc(_G.C_CurrencyInfo, 'SetCurrencyBackpack', function ()
+	--[[ Right after "SetCurrencyBackPack" was called, "GetNumWatchedTokens"
+			 still returns the previous count. Therefore, data has to be updated on
+			 the next frame. ]]
+	C_Timer.After(0, updateDataAndTooltip);
+end);
 
 --[[ event handling ]]
 local eventFrame = _G.CreateFrame('Frame');
