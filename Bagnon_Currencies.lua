@@ -101,6 +101,14 @@ function events:CURRENCY_DISPLAY_UPDATE (...)
 	updateTooltip();
 end
 
+-- Will update the dataobject whenever mouse is clicked while the currency-window is open.
+function events:GLOBAL_MOUSE_UP (...)
+	if TokenFrame:IsVisible() then
+		updateDataObject();
+		updateTooltip();
+	end
+end
+
 --[[ event handling ]]
 local eventFrame = _G.CreateFrame('Frame');
 
