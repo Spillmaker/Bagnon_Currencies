@@ -33,10 +33,14 @@ end
 local function updateDataObject ()
 	local text = {};
 
-	for i = 1, GetNumWatchedTokens(), 1 do
-		local info = GetBackpackCurrencyInfo(i);
+	if table.getn(getWatchedCurrencies()) == 0 then
+		tinsert(text, "Show Currencies")
+	else
+		for i, v in pairs(getWatchedCurrencies()) do
+			local currencyInfo = GetCurrencyInfo(v.currencyTypesID)
+			tinsert(text, strjoin("", currencyInfo.quantity, createIconString(currencyInfo.iconFileID)));
+		end
 
-		tinsert(text, strjoin("", info.quantity, createIconString(info.iconFileID)));
 	end
 
 	dataObject.text = strjoin(" ",  unpack(text));
@@ -48,36 +52,41 @@ local function setTooltipParent (parent)
 end
 
 local function setTooltipText ()
-	GameTooltip:ClearLines();
-	GameTooltip:AddLine(whitenText("Currencies"));
 
-	for i = 1, GetNumWatchedTokens() do
-		local backpackInfo = GetBackpackCurrencyInfo(i);
-		local info = GetCurrencyInfo(backpackInfo.currencyTypesID);
-		local icon = createIconString(info.iconFileID);
-		local totalMax = info.maxQuantity;
-		local weeklyMax = info.maxWeeklyQuantity;
-		local amount = info.quantity;
-		local earnedThisWeek = info.quantityEarnedThisWeek;
+	if table.getn(getWatchedCurrencies()) == 0 then
+		GameTooltip:AddLine(whitenText("Click to open Currency-tab"));
+	else
+		GameTooltip:AddLine(whitenText("Currencies"));
 
-		if totalMax <= 0 then
-			GameTooltip:AddDoubleLine(
-				whitenText(strjoin(" ", icon, info.name)),
-				whitenText(strjoin(" ", amount, icon))
-			);
-		else
-			GameTooltip:AddDoubleLine(
-				whitenText(strjoin(" ", icon, info.name)),
-				whitenText(strjoin("", amount, "/", totalMax, " ", icon))
-			);
+		for i, v in pairs(getWatchedCurrencies()) do
+			-- Fetch detailed information about current currency.
+			local currencyInfo = GetCurrencyInfo(v.currencyTypesID)
+			-- Get icon-url
+			local icon = createIconString(v.iconFileID);
+
+			-- If the currency has a maxQuantity
+			if currencyInfo.maxQuantity then
+				GameTooltip:AddDoubleLine(
+						whitenText(strjoin(" ", icon, currencyInfo.name)),
+						whitenText(strjoin("", currencyInfo.quantity, "/", currencyInfo.maxQuantity, " ", icon))
+				);
+			else
+				GameTooltip:AddDoubleLine(
+						whitenText(strjoin(" ", icon, currencyInfo.name)),
+						whitenText(strjoin(" ", currencyInfo.quantity, icon))
+				);
+			end
+
+			-- Add a second line for weekly limit if that exists for currency
+			if currencyInfo.maxWeeklyQuantity and currencyInfo.maxWeeklyQuantity > 0 then
+				GameTooltip:AddDoubleLine(
+						"Weekly Maximum:",
+						whitenText(strjoin("", currencyInfo.quantityEarnedThisWeek, "/", currencyInfo.maxWeeklyQuantity, " ", icon))
+				);
+			end
+
 		end
 
-		if weeklyMax > 0 then
-			GameTooltip:AddDoubleLine(
-				"Weekly Maximum:",
-				whitenText(strjoin("", earnedThisWeek, "/", weeklyMax, " ", icon))
-			);
-		end
 	end
 
 	GameTooltip:Show();
@@ -97,6 +106,7 @@ function dataObject:OnEnter ()
 end
 
 function events:CURRENCY_DISPLAY_UPDATE (...)
+
 	updateDataObject();
 	updateTooltip();
 end
@@ -107,6 +117,21 @@ function events:GLOBAL_MOUSE_UP (...)
 		updateDataObject();
 		updateTooltip();
 	end
+end
+
+function getWatchedCurrencies()
+	-- Create new empty table.
+	local currencies = {}
+	-- This lets is iterate trough the alleged amount of currencies that is watched.
+	-- This is known to be incorrect if you unwatch the last watched currency. (Still says 1 instead of 0).
+	for i = 1, GetNumWatchedTokens() do
+		local currency = GetBackpackCurrencyInfo(i);
+		-- Insert currency into table only if it exists.
+		if currency then
+			table.insert(currencies, currency)
+		end
+	end
+	return currencies
 end
 
 --[[ event handling ]]
