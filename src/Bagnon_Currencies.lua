@@ -16,7 +16,7 @@ print("Addon loaded")
 local ToolTipSize = {width = 200, height = 200}
 
 
-local ToolTipCursorPosition = {x = 5, y = -5}
+local ToolTipCursorPosition = {x = 10, y = -4}
 
 local function AddText(targetFrame, message, font, size, style)
 	targetFrame.newText = targetFrame:CreateFontString(nil,"ARTWORK")
@@ -40,25 +40,62 @@ local function AddIconToText (iconPath)
 	return strjoin("", "|T", iconPath, ":15:15:0:0|t");
 end
 
-function AddCurrencyText(targetFrame, message, font, size, style, icon, amount)
-	-- TODO: I want to make a function that makes a row in a "table" where i can have Name of the
-	-- TODO: Currency on the left, and the amount and icon on the right.
-	textLine = AddText(targetFrame, message, font, size, style)
-	TT_width, TT_height = targetFrame:GetSize()
-	line_width, line_height = textLine:GetSize()
-	textLine.amount = AddText(targetFrame, "TTTTTTT", font, size, style)
-	textLine.amount:SetPoint("TOPRIGHT", TT_width, 30)
-	textLine.amount:SetWidth(100)
-	-- Lets move the cursor back up.
-	ToolTipCursorPosition.y = ToolTipCursorPosition.y + size
+local function CreateToolTip(width, height)
+	newTooltip = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+	newTooltip:SetPoint("CENTER", UIParent, "CENTER", 0,0)
+	newTooltip:SetHeight(width)
+	newTooltip:SetWidth(height)
+	newTooltip:SetBackdrop({
+		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+		edgeSize = 16,
+		insets = { left = 4, right = 4, top = 4, bottom = 4 },
+	})
+	newTooltip:SetBackdropColor(0, 0, 0, 1)
+	newTooltip:RegisterForDrag("LeftButton")
+	newTooltip:EnableMouse(true)
+	newTooltip:SetResizable(true)
 
-	-- Enlarge the width of the tooltip-frame if we are going above the preset.
-	if TT_width < (line_width + 100) then
-		print("Frame to little. expanding...")
-		ToolTipSize.width = line_width + 100
-		targetFrame.SetWidth = line_width + 100
+	newTooltip:SetScript("OnDragStart", function(self)
+		self:StartSizing()
+	end)
+	newTooltip:SetScript("OnDragStop", function(self)
+		self:StopMovingOrSizing()
+	end)
+
+	return newTooltip;
+end
+
+function AddHeaderText(targetFrame, message)
+	margin_top = 5
+	ToolTipCursorPosition.y = ToolTipCursorPosition.y - (16 / 2) - margin_top
+	targetFrame.newHeaderText = targetFrame:CreateFontString(nil,"ARTWORK")
+	targetFrame.newHeaderText:SetFont("Fonts\\FRIZQT__.TTF", 16, "THICKOUTLINE")
+	targetFrame.newHeaderText:SetText(message)
+	targetFrame.newHeaderText:SetPoint("CENTER", targetFrame, "TOP", 0, ToolTipCursorPosition.y) -- Anchor of the text is in the center, and its centered in its parent.
+	print(targetFrame.get)
+	--targetFrame.newHeaderText:SetPoint("CENTER", ToolTipCursorPosition.x, ToolTipCursorPosition.y)
+	ToolTipCursorPosition.y = ToolTipCursorPosition.y - (16 / 2)
+end
+
+function AddCurrencyText(targetFrame, message)
+	ToolTipCursorPosition.y = ToolTipCursorPosition.y - (13 / 2)
+	-- Add the currency Name
+	targetFrame.newCurrencyName = targetFrame:CreateFontString(nil, "ARTWORK")
+	targetFrame.newCurrencyName:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
+	targetFrame.newCurrencyName:SetText(message)
+	targetFrame.newCurrencyName:SetPoint("TOPLEFT", targetFrame, "TOPLEFT", ToolTipCursorPosition.x, ToolTipCursorPosition.y)
+	ToolTipCursorPosition.y = ToolTipCursorPosition.y - 13
+
+	newCurrencyFrameWidth, newCurrencyFrameHeight = targetFrame.newCurrencyName:GetSize()
+	targetFrameWidth, targetFrameHeight = targetFrame:GetSize()
+
+	-- get total width and rescale targetFrame
+	if targetFrameWidth < (newCurrencyFrameWidth + 100) then
+		targetFrame:SetWidth(newCurrencyFrameWidth + 100)
 	end
 
+	targetFrame:SetHeight(math.abs(ToolTipCursorPosition.y) + 2 + 4)
 end
 
 
@@ -79,39 +116,25 @@ local function whitenText (text)
 end
 
 -- Tooltip
-local ToolTip = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-ToolTip:SetPoint("CENTER",0,0)
-ToolTip:SetHeight(ToolTipSize.height)
-ToolTip:SetWidth(ToolTipSize.width)
--- Set Backdrop
-local borderThickness = 4
-ToolTip:SetBackdrop({
-	bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-	edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-	edgeSize = 16,
-	insets = { left = borderThickness, right = borderThickness, top = borderThickness, bottom = borderThickness },
-})
-ToolTip:SetBackdropColor(0, 0, 0, 1)
+
+local ToolTip = CreateToolTip(100,200)
 
 
 for i = 1, CurrencyListSize do
 	name, isHeader, isExpanded, isUnused, isWatched, count, extraCurrencyType, icon, itemID = GetCurrencyListInfo(i)
 
-	style = "";
-	size = 13;
-
 	-- check if its a header
 	if isHeader then
-		style = "THICKOUTLINE"
-		size = 16
+		AddHeaderText(ToolTip, name)
+	else
+		AddCurrencyText(ToolTip, name)
 	end
 
-	AddCurrencyText(ToolTip, name, "FRIZQT", size, style)
+	--AddCurrencyText(ToolTip, name, "FRIZQT", size, style)
 
 end
 
 
-ToolTip:Show()
 
 -- TODO: Get a list of all currencies
 -- TODO: List headers and currencies in tooltip.
