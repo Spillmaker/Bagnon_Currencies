@@ -43,4 +43,4 @@ jobs:
       - name: Package and release for Burning Crusade Classic
         uses: BigWigsMods/packager@v2
         with:
-          args: -a qv63RBNb -m pkgmeta.yaml
+          args: -a qv63RBNb -p 283110 -m pkgmeta.yaml
