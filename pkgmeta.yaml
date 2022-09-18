@@ -3,14 +3,7 @@
 package-as: Bagnon_Currencies
 
 ignore:
-  - .idea/
-  - dist/
-  - src/
   - README.md
-  - build.sh
-
-move-folders:
-  src: .
 
 manual-changelog:
   filename: Changelog.md
