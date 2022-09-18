@@ -4,7 +4,7 @@ package-as: Bagnon_Currencies
 
 ignore:
   - README.md
-  - pkmeta.yaml
+  - pkgmeta.yaml
   - Changelog.md
 
 manual-changelog:
