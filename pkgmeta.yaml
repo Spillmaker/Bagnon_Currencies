@@ -17,3 +17,5 @@ manual-changelog:
   markup-type: markdown
 
 license-output: LICENSE.txt
+
+enable-toc-creation: yes
