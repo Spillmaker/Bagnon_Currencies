@@ -1,3 +1,7 @@
 build.php
 _Build/
 /dist/*
+/.release/
+
+/Bagnon_Currencies_Wrath.toc
+/Bagnon_Currencies_Mainline.toc
