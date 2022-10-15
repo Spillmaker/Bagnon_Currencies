@@ -5,6 +5,7 @@ if WOW_PROJECT_ID ~= 11 then
 end
 
 local ToolTipCursorPosition = {x = 10, y = -4}
+local ToolTipFont = GameFontNormal:GetFont()
 
 local function CreateToolTip(width, height)
 	newTooltip = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
@@ -39,7 +40,7 @@ function AddHeaderText(targetFrame, message)
 	if not targetFrame["header" .. name] then
 		ToolTipCursorPosition.y = ToolTipCursorPosition.y - font_size
 		targetFrame["header" .. name] = targetFrame:CreateFontString(nil,"ARTWORK")
-		targetFrame["header" .. name]:SetFont("Fonts\\FRIZQT__.TTF", font_size, "OUTLINE")
+		targetFrame["header" .. name]:SetFont(ToolTipFont, font_size, "OUTLINE")
 		targetFrame["header" .. name]:SetPoint("CENTER", targetFrame, "TOP", 0, ToolTipCursorPosition.y) -- Anchor of the text is in the center, and its centered in its parent.
 		ToolTipCursorPosition.y = ToolTipCursorPosition.y - font_size
 	end
@@ -52,7 +53,7 @@ function AddCurrencyText(targetFrame, name, amount, iconPath, itemID)
 
 	if not targetFrame["currency" .. name] then
 		targetFrame["currency" .. name] = targetFrame:CreateFontString(nil, "ARTWORK")
-		targetFrame["currency" .. name]:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
+		targetFrame["currency" .. name]:SetFont(ToolTipFont, 13, "OUTLINE")
 		targetFrame["currency" .. name]:SetPoint("TOPLEFT", targetFrame, "TOPLEFT", ToolTipCursorPosition.x, ToolTipCursorPosition.y)
 	end
 
@@ -60,7 +61,7 @@ function AddCurrencyText(targetFrame, name, amount, iconPath, itemID)
 
 	if not targetFrame["currencyIcon" .. name] then
 		targetFrame["currencyIcon" .. name] = targetFrame:CreateFontString(nil, "ARTWORK")
-		targetFrame["currencyIcon" .. name]:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
+		targetFrame["currencyIcon" .. name]:SetFont(ToolTipFont, 13, "OUTLINE")
 		targetFrame["currencyIcon" .. name]:SetPoint("TOPRIGHT", targetFrame, "TOPRIGHT", -10, ToolTipCursorPosition.y)
 
 		newCurrencyFrameWidth, newCurrencyFrameHeight = targetFrame["currency" .. name]:GetSize()
@@ -127,7 +128,6 @@ function tooltip_painter ()
 	end
 end
 
-tooltip_painter()
 
 dataObject.text = CreateLDBCurrencyString();
 
