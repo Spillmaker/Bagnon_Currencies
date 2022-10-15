@@ -1,3 +1,7 @@
+# 2.2.0
+- Fixed a bug that would make Bagnon_Currencies interfere with other LDB-displays.
+    - _The bug has always been there, but was made visible in Bagnon 9.2.2_
+
 # 2.1.0
 - Fixed an issue where the addon would crash on load
 - Fixed an issue with non-latin fonts not being loaded.

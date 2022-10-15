@@ -110,7 +110,8 @@ local function ToggleCurrencyTab()
 end
 
 -- The object used to show the currencies in the bag
-local dataObject = ldb:NewDataObject("Bagnon-Currencies", {
+local dataObject = ldb:NewDataObject("Bagnon_Currencies", {
+	type = "Launcher",
 	text = "Loading currencies...",
 	OnClick = function() ToggleCurrencyTab() end
 });
